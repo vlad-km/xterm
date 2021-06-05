@@ -78,8 +78,9 @@
         (term-writeln ""))
     (clear-terminal-stream-buffer)))
 
-(defvar *tsb*)
-(defun make-terminal-stream ()
+(defvar *tsb* (make-instance 'terminal-stream))
+
+(defn- make-terminal-stream ()
   (make-instance 'terminal-stream))
 
 (defvar stdout
@@ -88,6 +89,7 @@
                (terminal-stream-out string)
                (terminal-stream-finish))))
 
+(export '(xterm::stdout))
 
 ;;; input system queue
 
@@ -108,14 +110,14 @@
           :initform nil
           :accessor kb-stream-index)))
 
-(defun make-kb-stream (&key size)
+(defn- make-kb-stream (&key size)
   (make-instance 'kb-stream
                  :buffer (make-array (list size) :initial-element nil)
                  :size size))
 
 ;;; push element
 ;;; return nil if buffer is full
-(defun kb-stream-write (stream value)
+(defn- kb-stream-write (stream value)
     (let ((next (1+ (kb-stream-tail stream))))
         (if (>= next (kb-stream-size stream)) (setq next 0))
         (if (null (= next (kb-stream-head stream)))
@@ -125,7 +127,7 @@
 
 ;;; pop element from buffer
 ;;; return (nil nil) if empty buffer
-(defun kb-stream-read (stream)
+(defn- kb-stream-read (stream)
   (if (not (= (kb-stream-head stream) (kb-stream-tail stream)))
       (let ((value (aref (kb-stream-buffer stream) (kb-stream-head stream)))
             (next (1+ (kb-stream-head stream))))
@@ -137,7 +139,7 @@
 
 
 ;;; reset queue
-(defun kb-stream-reset (stream)
+(defn- kb-stream-reset (stream)
     (setf (kb-stream-head stream) 0 (kb-stream-tail stream) 0)
     (values))
 
