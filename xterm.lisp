@@ -141,8 +141,8 @@
 (defn- on.dispose (d) (funcall (jscl::oget d "dispose")))
 (defn- on.key (drv) (#j:term:onKey drv))
 (defn- on.data (drv) (#j:term:onData drv))
-(defun term.write (seq) (#j:term:write seq))
-(defun term.writeln (seq) (#j:term:writeln seq))
+(defn- term.write (seq) (#j:term:write seq))
+(defn- term.writeln (seq) (#j:term:writeln seq))
 (defn- term.dispose nil (#j:term:dispose))
 (defn- term.blur nil (#j:term:blur))
 ;;; note: `clear` dirty source code. use `reset`
