@@ -135,26 +135,46 @@
 (defn- term.open (element)
   (#j:term:open (#j:document:getElementById element)))
 
+(defn- term.dispose nil (#j:term:dispose))
+
 ;;; xterm.js api
 (defn- on.dispose (d) (funcall (jscl::oget d "dispose")))
 (defn- on.key (drv) (#j:term:onKey drv))
-(defn- term.write (seq) (#j:term:write seq))
-(defn- term.writeln (seq) (#j:term:writeln seq))
+(defn- on.data (drv) (#j:term:onData drv))
+(defun term.write (seq) (#j:term:write seq))
+(defun term.writeln (seq) (#j:term:writeln seq))
+(defn- term.dispose nil (#j:term:dispose))
+(defn- term.blur nil (#j:term:blur))
+;;; note: `clear` dirty source code. use `reset`
+(defn- term.clear nil (#j:term:clear))
+(defn- term.reset nil (#j:term:reset))
+(defn- term.focus nil (#j:term:focus))
+(defn- term.getOption (k) (#j:term:getOption k))
+(defn- term.resize (c r) (#j:term:resize c r))
+;;; scrolling
+(defn- scroll.lines (n) (#j:term:scrollLines n ))
+(defn- scroll.up () (#j:term:scrollLines -1 ))
+(defn- scroll.down () (#j:term:scrollLines 1))
+(defn- scroll.top () (#j:term:scrollToTop))
+(defn- scroll.bottom () (#j:term:scrollToBottom))
+(defn- scrollPages (c) (#j:term:scrollPages c))
+(defn- scrollPage.up nil (#j:term:scrollPages -1))
+(defn- scrollPage.down nil (#j:term:scrollPages 1))
+(defn- scrollToLine (n) (#j:term:scrollToLine n))
+(defn- setOption (k v) (#j:term:setOption k v))
 
-;;; xterm api
-(defn- term.scroll.lines (n) (#j:term:scrollLines n ))
-
-(defn- term.scroll.up () (#j:term:scrollLines -1 ))
-
-(defn- term.scroll.down () (#j:term:scrollLines 1))
-
-(defn- term-scroll.top () (#j:term:scrollToTop))
-
-(defn- term.scroll.bottom () (#j:term:scrollToBottom))
-
-(defn- term.select.lines (start end) (#j:term:selectLines start end))
-
-(defn- term.select (col row length) (#j:term:select col row length))
+;;; selection
+(defn- select.lines (start end) (#j:term:selectLines start end))
+(defn- select (col row length) (#j:term:select col row length))
+(defn- clearSelection nil (#j:term:clearSelection))
+(defn- hasSelection nil (#j:term:hasSelection))
+(defn- getSelectionPosition nil
+  (when (hasSelection)
+    (let ((r (#j:term:getSelectionPosition)))
+      (values (jscl::oget r "startRow")
+              (jscl::oget r "startColumn")
+              (jscl::oget r "endRow")
+              (jscl::oget r "endColumn")) )))
 
 ;;; trim	boolean	Whether to trim any whitespace at the right of the line.
 ;;; start	number	The column to start from (inclusive).
@@ -162,13 +182,12 @@
 (defn- get-buffer-line (num &optional (trim t) start end)
   (#j:term:buffer:active:_buffer:translateBufferLineToString num trim start end))
 
+;;; 
 (defn- get-wrapped-region (line)
   (let ((result
           (#j:term:buffer:active:_buffer:getWrappedRangeForLine line)))
     (values (jscl::oget result "first")
             (jscl::oget result "last"))))
-
-#+nil (defvar +CSI+ (code-char #x9b))
 
 ;;; SM IRM
 (defn- insert.mode.on nil (term.write (jscl::concat +CSI+ 4 "h")))
@@ -217,16 +236,13 @@
 (defn- cursor.down (&optional (col 1))
   (term.write (jscl::concat +CSI+ col "B")))
 
-;;; DECSTBM
-;;; Set Top and Bottom Margin	CSI Ps ; Ps r
-;;; Set top and bottom margins of the viewport [top;bottom] (default = viewport size).
-(defun set-viewport (top bottom)
-  (term.write (jscl::concat +CSI+ top ";" bottom "r")))
-
 ;;; VPA	Vertical Position Absolute
 ;;; CSI Ps d	Move cursor to Ps-th row (default=1).
-(defn- cursor.vpa (&optional(row 1))
+(defn- cursor.vertical.move (&optional(row 1))
   (term.write (jscl::concat +CSI+ row "d")))
+
+(defn- cursor.save () (term.write (jscl::concat +CSI+ "s")))
+(defn- cursor.restore () (term.write (jscl::concat +CSI+ "u")))
 
 ;;; ED
 ;;; 0	Erase from the cursor through the end of the viewport.
@@ -259,18 +275,6 @@
 ;;; ICH
 (defn- insert.char (&optional col 1)
   (term.write (jscl::concat +CSI+ col "@")))
-
-;;; SU
-(defn- scroll.up (&optional (row 1))
-  (term.write (jscl::concat +CSI+ row "S")))
-
-;;; SD
-(defn- scroll.down (&optional (row 1))
-  (term.write (jscl::concat +CSI+ row "T")))
-
-;;; cursor s/r
-(defn- save-cursor () (term.write (jscl::concat +CSI+ "s")))
-(defn- restore-cursor () (term.write (jscl::concat +CSI+ "u")))
 
 (in-package :cl-user)
 
