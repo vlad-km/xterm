@@ -73,7 +73,7 @@
 
 (defun terminal-stream-finish ()
   (when (dirty-terminal-stream-buffer)
-    (term-write (terminal-stream-buffer *tsb*))
+    (term.write (terminal-stream-buffer *tsb*))
     #+nil (if (terminal-stream-buffer-line-at-start)
         (term-writeln ""))
     (clear-terminal-stream-buffer)))
