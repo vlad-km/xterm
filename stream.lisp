@@ -102,7 +102,8 @@
    (tail   :initform 0
            :accessor kb-stream-tail)
    (size   :initform nil
-           :initarg :size)
+           :initarg :size
+           :accessor kb-stream-size)
    (buffer :initarg :buffer
            :initform nil
            :accessor kb-stream-buffer)
